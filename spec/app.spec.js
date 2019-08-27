@@ -7,6 +7,7 @@ const request = require("supertest")(app);
 const connection = require("../db/connection");
 
 describe("/api", () => {
+  beforeEach(() => connection.seed.run());
   after(() => connection.destroy());
   it("404 Status: bad path", () => {
     return request
@@ -16,7 +17,6 @@ describe("/api", () => {
         expect(body).to.eql({ msg: "Path not found" });
       });
   });
-
   describe("/topics", () => {
     describe("GET", () => {
       it("Status 200, responds with an array of topic objects", () => {
@@ -89,7 +89,7 @@ describe("/api", () => {
       });
     });
   });
-  describe("/articles", () => {
+  describe.only("/articles", () => {
     describe("/:article_id", () => {
       describe("GET", () => {
         it("Status 200: responds with article object", () => {
@@ -132,8 +132,39 @@ describe("/api", () => {
         it("Status 200: responds with updated article", () => {
           return request
             .patch("/api/articles/1")
-            .send({ inc_votes: 10 })
-            .expect(200);
+            .send({ inc_votes: 100 })
+            .expect(200)
+            .then(({ body }) => {
+              expect(body.article.votes).to.equal(200);
+            });
+        });
+        it("Status 400, no inc_votes sent", () => {
+          return request
+            .patch("/api/articles/1")
+            .expect(400)
+            .then(({ body }) => {
+              expect(body.msg).to.equal("Could not find inc_votes on body");
+            });
+        });
+        it("Status 400, invalid body sent", () => {
+          return request
+            .patch("/api/articles/1")
+            .send({ inc_votes: "cat" })
+            .expect(400)
+            .then(({ body }) => {
+              expect(body.msg).to.equal(
+                "Inc_votes syntax error, expected number"
+              );
+            });
+        });
+        it("Status 400, other information on body", () => {
+          return request
+            .patch("/api/articles/1")
+            .send({ inc_votes: 100, name: "Laura" })
+            .expect(400)
+            .then(({ body }) => {
+              expect(body.msg).to.equal("Unexpected properties on body");
+            });
         });
       });
     });
