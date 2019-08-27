@@ -89,4 +89,53 @@ describe("/api", () => {
       });
     });
   });
+  describe("/articles", () => {
+    describe("/:article_id", () => {
+      describe("GET", () => {
+        it("Status 200: responds with article object", () => {
+          return request
+            .get("/api/articles/1")
+            .expect(200)
+            .then(({ body }) => {
+              expect(body).to.be.an("object");
+              expect(body.article).to.have.keys(
+                "author",
+                "title",
+                "article_id",
+                "body",
+                "topic",
+                "created_at",
+                "votes",
+                "comment_count"
+              );
+              expect(body.article.comment_count).to.equal("13");
+            });
+        });
+        it("Status 400, responds with 'Syntax error' when article_id is not a number", () => {
+          return request
+            .get("/api/articles/article-name")
+            .expect(400)
+            .then(({ body }) => {
+              expect(body.msg).to.equal("Syntax error, input not valid type");
+            });
+        });
+        it("Status 404, responds with 'Article not found' when article_id doesnt exist", () => {
+          return request
+            .get("/api/articles/1000")
+            .expect(404)
+            .then(({ body }) => {
+              expect(body.msg).to.equal("Article not found");
+            });
+        });
+      });
+      describe("PATCH", () => {
+        it("Status 200: responds with updated article", () => {
+          return request
+            .patch("/api/articles/1")
+            .send({ inc_votes: 10 })
+            .expect(200);
+        });
+      });
+    });
+  });
 });
