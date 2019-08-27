@@ -6,56 +6,28 @@ const {
 } = require("../db/utils/utils");
 
 describe("formatDates", () => {
-  it("takes an array with an object with a time in unix timestamp and returns it as an SQL comptaible timestamp", () => {
-    expect(formatDates([{ created_at: 1471522072389 }])).to.eql([
-      { created_at: "2016-08-18T12:07:52.389Z" }
+  it("takes an array of objects without a created_at property and returns a matching array of objects", () => {
+    expect(formatDates([{}])).to.eql([{}]);
+  });
+  it("takes an array with an object containing a time in unix timestamp and returns it in the form of a Date class", () => {
+    expect(formatDates([{ created_at: 1 }])).to.eql([
+      { created_at: new Date(1) }
     ]);
   });
-  it("takes an array of multiple objects and returns it as an SQL comptaible timestamp", () => {
-    expect(
-      formatDates([
-        { created_at: 1471522072389 },
-        { created_at: 1500584273256 }
-      ])
-    ).to.eql([
-      { created_at: "2016-08-18T12:07:52.389Z" },
-      { created_at: "2017-07-20T20:57:53.256Z" }
+  it("takes an array of multiple objects and returns it in a Date class", () => {
+    expect(formatDates([{ created_at: 1 }, { created_at: 2 }])).to.eql([
+      { created_at: new Date(1) },
+      { created_at: new Date(2) }
     ]);
   });
   it("doesn't change the properties in the object", () => {
     const input = [
-      {
-        title: "Running a Node App",
-        topic: "coding",
-        author: "jessjelly",
-        body: "words and stuff",
-        created_at: 1471522072389
-      },
-      {
-        title:
-          "The Rise Of Thinking Machines: How IBM's Watson Takes On The World",
-        topic: "coding",
-        author: "jessjelly",
-        body: "words and stuff",
-        created_at: 1500584273256
-      }
+      { A: 1, B: 2, created_at: 3 },
+      { D: 4, E: 5, created_at: 6 }
     ];
     const expectedOutput = [
-      {
-        title: "Running a Node App",
-        topic: "coding",
-        author: "jessjelly",
-        body: "words and stuff",
-        created_at: "2016-08-18T12:07:52.389Z"
-      },
-      {
-        title:
-          "The Rise Of Thinking Machines: How IBM's Watson Takes On The World",
-        topic: "coding",
-        author: "jessjelly",
-        body: "words and stuff",
-        created_at: "2017-07-20T20:57:53.256Z"
-      }
+      { A: 1, B: 2, created_at: new Date(3) },
+      { D: 4, E: 5, created_at: new Date(6) }
     ];
     expect(formatDates(input)).to.eql(expectedOutput);
   });
@@ -105,8 +77,8 @@ describe("formatComments", () => {
       "article title": 36,
       "Living in the shadow of a great man": 24
     };
-    const expectedTime = "2016-11-22T12:36:03.389Z";
-    expect(formatComments(input, refObj)[0].created_at).to.equal(expectedTime);
+    const expectedTime = new Date(1479818163389);
+    expect(formatComments(input, refObj)[0].created_at).to.eql(expectedTime);
   });
   it("takes an array of objects and changes the created_by key to a author key", () => {
     const input = [

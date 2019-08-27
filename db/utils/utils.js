@@ -3,8 +3,7 @@ const formatDates = list => {
   return list.map(({ created_at, ...rest }) => {
     if (created_at) {
       const time = new Date(created_at);
-      created_at = time.toISOString();
-      return { created_at, ...rest };
+      return { created_at: time, ...rest };
     }
     return { ...rest };
   });
