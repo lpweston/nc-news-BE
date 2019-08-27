@@ -1,5 +1,5 @@
 const {
-  getArticle,
+  getArticles,
   patchVotes,
   postComment,
   getComments
@@ -8,8 +8,12 @@ const { send405 } = require("../errors/index.js");
 const articlesRouter = require("express").Router();
 
 articlesRouter
+  .route("/")
+  .get(getArticles)
+  .all(send405);
+articlesRouter
   .route("/:article_id")
-  .get(getArticle)
+  .get(getArticles)
   .patch(patchVotes)
   .all(send405);
 articlesRouter

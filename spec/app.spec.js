@@ -90,6 +90,34 @@ describe("/api", () => {
     });
   });
   describe("/articles", () => {
+    describe("GET", () => {
+      it("Status 200: responds with array of articles", () => {
+        return request
+          .get("/api/articles")
+          .expect(200)
+          .then(({ body }) => {
+            expect(body.articles[0]).to.have.keys(
+              "author",
+              "title",
+              "article_id",
+              "topic",
+              "created_at",
+              "votes",
+              "comment_count"
+            );
+          });
+      });
+      it("Status 200: sorts by date dec, by default", () => {
+        return request
+          .get("/api/articles")
+          .expect(200)
+          .then(({ body }) => {
+            expect(
+              body.articles.map(({ created_at }) => Date.parse(created_at))
+            ).to.be.descending;
+          });
+      });
+    });
     describe("/:article_id", () => {
       it("405 status: invalid methods", () => {
         const invalidMethods = ["put", "delete"];
@@ -102,7 +130,7 @@ describe("/api", () => {
         });
         return Promise.all(methodPromises);
       });
-      describe("GET", () => {
+      xdescribe("GET", () => {
         it("Status 200: responds with article object", () => {
           return request
             .get("/api/articles/1")

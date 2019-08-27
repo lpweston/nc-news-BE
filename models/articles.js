@@ -1,25 +1,38 @@
 const connection = require("../db/connection");
 
-exports.selectArticle = ({ article_id }) => {
-  return connection
-    .select("*")
-    .from("articles")
-    .where("article_id", article_id)
-    .then(rows => {
-      if (!rows[0]) {
-        return Promise.reject({ status: 404, msg: "Article not found" });
-      }
-      return rows[0];
-    });
+exports.selectArticles = (
+  { article_id = "%" },
+  { sort_by = "created_at", order = "desc" }
+) => {
+  return (
+    connection
+      .select("*")
+      .from("articles")
+      .orderBy(sort_by, order)
+      //.where("article_id", "like", article_id)
+      .then(rows => {
+        if (!rows[0]) {
+          return Promise.reject({ status: 404, msg: "Article not found" });
+        }
+        return rows;
+      })
+  );
 };
 
-exports.countComments = ({ article_id }) => {
-  return connection("comments")
-    .count("*")
-    .where("article_id", article_id)
-    .then(result => {
-      return result[0];
-    });
+exports.countComments = ({ article_id = "%" }) => {
+  return (
+    connection("comments")
+      .select("article_id")
+      .count("*")
+      //.where("article_id", "like", article_id)
+      .groupBy("article_id")
+      .then(result => {
+        return result.reduce((countRef, article) => {
+          countRef[article.article_id] = article.count;
+          return countRef;
+        }, {});
+      })
+  );
 };
 
 exports.updateVotes = ({ article_id }, { inc_votes, ...rest }) => {

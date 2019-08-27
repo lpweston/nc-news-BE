@@ -1,20 +1,27 @@
 const {
-  selectArticle,
+  selectArticles,
   countComments,
   updateVotes,
   insertComment,
   selectComments
 } = require("../models/articles");
 
-exports.getArticle = (req, res, next) => {
+exports.getArticles = (req, res, next) => {
   const promises = Promise.all([
-    selectArticle(req.params),
+    selectArticles(req.params, req.query),
     countComments(req.params)
   ]);
   return promises
-    .then(([article, { count }]) => {
-      article.comment_count = count;
-      res.status(200).send({ article });
+    .then(([articles, countRef]) => {
+      if (articles.length === 1) {
+        articles[0].comment_count = countRef[articles[0].article_id] || 0;
+        res.status(200).send({ article: articles[0] });
+      }
+      articles.forEach(article => {
+        article.comment_count = countRef[article.article_id] || 0;
+        delete article.body;
+      });
+      res.status(200).send({ articles });
     })
     .catch(next);
 };
