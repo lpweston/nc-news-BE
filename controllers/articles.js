@@ -1,7 +1,9 @@
 const {
   selectArticle,
   countComments,
-  updateVotes
+  updateVotes,
+  insertComment,
+  selectComments
 } = require("../models/articles");
 
 exports.getArticle = (req, res, next) => {
@@ -18,9 +20,25 @@ exports.getArticle = (req, res, next) => {
 };
 
 exports.patchVotes = (req, res, next) => {
-  updateVotes(req.body, req.params)
+  updateVotes(req.params, req.body)
     .then(article => {
       res.status(200).send({ article });
+    })
+    .catch(next);
+};
+
+exports.postComment = (req, res, next) => {
+  insertComment(req.params, req.body)
+    .then(comment => {
+      res.status(201).send({ comment });
+    })
+    .catch(next);
+};
+
+exports.getComments = (req, res, next) => {
+  selectComments(req.params, req.query)
+    .then(comments => {
+      res.status(200).send({ comments });
     })
     .catch(next);
 };
