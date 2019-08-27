@@ -127,7 +127,7 @@ describe("/api", () => {
             .get("/api/articles/article-name")
             .expect(400)
             .then(({ body }) => {
-              expect(body.msg).to.equal("Syntax error, input not valid type");
+              expect(body.msg).to.equal("Syntax error, input not valid");
             });
         });
         it("Status 404, responds with 'Article not found' when article_id doesnt exist", () => {
@@ -225,7 +225,7 @@ describe("/api", () => {
               });
           });
         });
-        describe.only("GET", () => {
+        describe("GET", () => {
           it("Status 200: responds with array of comments", () => {
             return request
               .get("/api/articles/1/comments")
@@ -235,7 +235,6 @@ describe("/api", () => {
                 expect(body.comments[0]).to.have.keys(
                   "comment_id",
                   "author",
-                  "article_id",
                   "votes",
                   "created_at",
                   "body"
@@ -247,7 +246,7 @@ describe("/api", () => {
               .get("/api/articles/article-name/comments")
               .expect(400)
               .then(({ body }) => {
-                expect(body.msg).to.equal("Syntax error, input not valid type");
+                expect(body.msg).to.equal("Syntax error, input not valid");
               });
           });
           it("Status 404, responds with 'Article not found' when article_id doesnt exist", () => {
@@ -258,7 +257,7 @@ describe("/api", () => {
                 expect(body.msg).to.equal("Comments not found");
               });
           });
-          it("Status 200: defualt sort_by created_by", () => {
+          it("Status 200: default sort_by created_by", () => {
             return request
               .get("/api/articles/1/comments")
               .expect(200)
@@ -266,6 +265,24 @@ describe("/api", () => {
                 expect(
                   body.comments.map(({ created_at }) => Date.parse(created_at))
                 ).to.be.descending;
+              });
+          });
+          it("Status 200: with sort_by and order queries", () => {
+            return request
+              .get("/api/articles/1/comments?sort_by=votes&order=asc")
+              .expect(200)
+              .then(({ body }) => {
+                expect(body.comments).to.be.sortedBy("votes");
+              });
+          });
+          it("Status 400: bad request, when incorrect sort_by or order query given", () => {
+            return request
+              .get("/api/articles/1/comments?sort_by=random&order=desc")
+              .expect(400)
+              .then(result => {
+                expect(result.body.msg).to.equal(
+                  "Syntax error, input not valid"
+                );
               });
           });
         });

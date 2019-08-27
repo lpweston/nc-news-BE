@@ -77,7 +77,7 @@ exports.selectComments = (
   { sort_by = "created_at", order = "desc" }
 ) => {
   return connection("comments")
-    .select("*")
+    .select("comment_id", "author", "votes", "created_at", "body")
     .where("article_id", article_id)
     .orderBy(sort_by, order)
     .then(comments => {
