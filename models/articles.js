@@ -1,38 +1,34 @@
 const connection = require("../db/connection");
 
 exports.selectArticles = (
-  { article_id = "%" },
+  { article_id },
   { sort_by = "created_at", order = "desc" }
 ) => {
-  return (
-    connection
-      .select("*")
-      .from("articles")
-      .orderBy(sort_by, order)
-      //.where("article_id", "like", article_id)
-      .then(rows => {
-        if (!rows[0]) {
-          return Promise.reject({ status: 404, msg: "Article not found" });
-        }
-        return rows;
-      })
-  );
-};
-
-exports.countComments = ({ article_id = "%" }) => {
-  return (
-    connection("comments")
-      .select("article_id")
-      .count("*")
-      //.where("article_id", "like", article_id)
-      .groupBy("article_id")
-      .then(result => {
-        return result.reduce((countRef, article) => {
-          countRef[article.article_id] = article.count;
-          return countRef;
-        }, {});
-      })
-  );
+  return connection("articles")
+    .modify(query => {
+      if (article_id) {
+        query.select("articles.*").where("articles.article_id", article_id);
+      } else {
+        query.select(
+          "articles.author",
+          "title",
+          "articles.article_id",
+          "topic",
+          "articles.created_at",
+          "articles.votes"
+        );
+      }
+    })
+    .count("comment_id", { as: "comment_count" })
+    .leftJoin("comments", "articles.article_id", "comments.article_id")
+    .groupBy("articles.article_id")
+    .orderBy(sort_by, order)
+    .then(rows => {
+      if (!rows[0]) {
+        return Promise.reject({ status: 404, msg: "Article not found" });
+      }
+      return rows;
+    });
 };
 
 exports.updateVotes = ({ article_id }, { inc_votes, ...rest }) => {

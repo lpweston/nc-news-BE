@@ -130,7 +130,7 @@ describe("/api", () => {
         });
         return Promise.all(methodPromises);
       });
-      xdescribe("GET", () => {
+      describe("GET", () => {
         it("Status 200: responds with article object", () => {
           return request
             .get("/api/articles/1")
