@@ -5,6 +5,13 @@ exports.handleCustomErrors = (err, req, res, next) => {
 };
 exports.handlePsqlErrors = (err, req, res, next) => {
   if (err.code) {
+    //console.log(err.code);
+    if (err.code === "23502") {
+      res.status(400).send({ msg: "Not null violation" });
+    }
+    if (err.code === "23503") {
+      res.status(400).send({ msg: "Article_id not found" });
+    }
     if (err.code === "42703") {
       res.status(400).send({ msg: "Query invalid, column not found" });
     }

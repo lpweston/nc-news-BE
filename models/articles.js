@@ -7,7 +7,7 @@ exports.selectArticles = (
   if (order != "asc" && order != "desc") {
     return Promise.reject({
       status: 400,
-      msg: "Syntax error, order input should be asc or desc"
+      msg: "Query error, order input should be asc or desc"
     });
   }
   return connection("articles")
@@ -65,15 +65,27 @@ exports.updateVotes = ({ article_id }, { inc_votes, ...rest }) => {
     .increment("votes", inc_votes)
     .returning("*")
     .then(article => {
+      if (!article.length) {
+        return Promise.reject({
+          status: 404,
+          msg: "Article not found"
+        });
+      }
       return article[0];
     });
 };
 
 exports.insertComment = ({ article_id }, { username, body, ...rest }) => {
-  if (!username || !body) {
+  if (!username) {
     return Promise.reject({
       status: 400,
-      msg: "Missing either username or body"
+      msg: "Missing username"
+    });
+  }
+  if (!body) {
+    return Promise.reject({
+      status: 400,
+      msg: "Missing comment body"
     });
   }
   if (Object.keys(rest).length) {
@@ -83,8 +95,7 @@ exports.insertComment = ({ article_id }, { username, body, ...rest }) => {
     });
   }
   return connection("comments")
-    .where("article_id", article_id)
-    .insert({ author: username, body })
+    .insert({ author: username, body, article_id })
     .returning("*")
     .then(comment => {
       return comment[0];
@@ -95,6 +106,12 @@ exports.selectComments = (
   { article_id },
   { sort_by = "created_at", order = "desc" }
 ) => {
+  if (order != "asc" && order != "desc") {
+    return Promise.reject({
+      status: 400,
+      msg: "Query error, order input should be asc or desc"
+    });
+  }
   return connection("comments")
     .select("comment_id", "author", "votes", "created_at", "body")
     .where("article_id", article_id)
