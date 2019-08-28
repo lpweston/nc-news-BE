@@ -1,12 +1,14 @@
 exports.handleCustomErrors = (err, req, res, next) => {
-  //console.log(err);
   if (err.status) {
     res.status(err.status).send({ msg: err.msg });
   } else next(err);
 };
 exports.handlePsqlErrors = (err, req, res, next) => {
   if (err.code) {
-    if ((err.code = "22P02")) {
+    if (err.code === "42703") {
+      res.status(400).send({ msg: "Query invalid, column not found" });
+    }
+    if (err.code === "22P02") {
       res.status(400).send({ msg: "Syntax error, input not valid" });
     }
     res.status(400).send({ msg: err.message });

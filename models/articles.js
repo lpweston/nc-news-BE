@@ -2,8 +2,14 @@ const connection = require("../db/connection");
 
 exports.selectArticles = (
   { article_id },
-  { sort_by = "created_at", order = "desc" }
+  { sort_by = "created_at", order = "desc", author, topic }
 ) => {
+  if (order != "asc" && order != "desc") {
+    return Promise.reject({
+      status: 400,
+      msg: "Syntax error, order input should be asc or desc"
+    });
+  }
   return connection("articles")
     .modify(query => {
       if (article_id) {
@@ -19,13 +25,17 @@ exports.selectArticles = (
         );
       }
     })
+    .modify(query => {
+      if (author) query.where("articles.author", author);
+      if (topic) query.where("articles.topic", topic);
+    })
     .count("comment_id", { as: "comment_count" })
     .leftJoin("comments", "articles.article_id", "comments.article_id")
     .groupBy("articles.article_id")
     .orderBy(sort_by, order)
     .then(rows => {
       if (!rows[0]) {
-        return Promise.reject({ status: 404, msg: "Article not found" });
+        return Promise.reject({ status: 404, msg: "Article/s not found" });
       }
       return rows;
     });
