@@ -23,6 +23,12 @@ exports.updateVotes = ({ comment_id }, { inc_votes, ...rest }) => {
     .increment("votes", inc_votes)
     .returning("*")
     .then(comment => {
+      if (!comment.length) {
+        return Promise.reject({
+          status: 404,
+          msg: "Comment not found"
+        });
+      }
       return comment[0];
     });
 };

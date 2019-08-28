@@ -10,7 +10,9 @@ exports.handlePsqlErrors = (err, req, res, next) => {
       res.status(400).send({ msg: "Not null violation" });
     }
     if (err.code === "23503") {
-      res.status(400).send({ msg: "Article_id not found" });
+      res.status(422).send({
+        msg: "Foreign_key_violation: one of your inputs was not found"
+      });
     }
     if (err.code === "42703") {
       res.status(400).send({ msg: "Query invalid, column not found" });

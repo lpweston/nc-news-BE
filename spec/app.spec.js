@@ -348,13 +348,15 @@ describe("/api", () => {
                 expect(body.msg).to.equal("Syntax error, input not valid");
               });
           });
-          it("404 Status: article_id not found", () => {
+          it("422 Status: article_id not found", () => {
             return request
               .post("/api/articles/30/comments")
               .send({ username: "lurker", body: "here is a comment" })
-              .expect(400)
+              .expect(422)
               .then(({ body }) => {
-                expect(body.msg).to.equal("Article_id not found");
+                expect(body.msg).to.equal(
+                  "Foreign_key_violation: one of your inputs was not found"
+                );
               });
           });
           it("400 Status: username not sent", () => {
@@ -364,6 +366,17 @@ describe("/api", () => {
               .expect(400)
               .then(({ body }) => {
                 expect(body.msg).to.equal("Missing username");
+              });
+          });
+          it("422 Status: username not found", () => {
+            return request
+              .post("/api/articles/1/comments")
+              .send({ username: "some_user", body: "here is a comment" })
+              .expect(422)
+              .then(({ body }) => {
+                expect(body.msg).to.equal(
+                  "Foreign_key_violation: one of your inputs was not found"
+                );
               });
           });
           it("400 Status: comment body not sent", () => {
@@ -409,15 +422,23 @@ describe("/api", () => {
                 expect(body.msg).to.equal("Syntax error, input not valid");
               });
           });
-          it("404 Status: responds with 'Comments not found' when article_id doesnt exist", () => {
+          it("404 Status: responds with 'Article not found' when article_id doesnt exist", () => {
             return request
               .get("/api/articles/1000/comments")
+              .expect(404)
+              .then(({ body }) => {
+                expect(body.msg).to.equal("Article/s not found");
+              });
+          });
+          it("404 Status: responds with 'Comments not found' when article_id doesnt have any comments", () => {
+            return request
+              .get("/api/articles/2/comments")
               .expect(404)
               .then(({ body }) => {
                 expect(body.msg).to.equal("Comments not found");
               });
           });
-          it("200 Status: default sort_by created_by", () => {
+          it("200 Status: default sort_by created_by desc", () => {
             return request
               .get("/api/articles/1/comments")
               .expect(200)
@@ -427,7 +448,7 @@ describe("/api", () => {
                 ).to.be.descending;
               });
           });
-          it("200 Status: with sort_by and order queries", () => {
+          it("200 Status: with valid sort_by and order queries", () => {
             return request
               .get("/api/articles/1/comments?sort_by=votes&order=asc")
               .expect(200)
@@ -445,7 +466,7 @@ describe("/api", () => {
                 );
               });
           });
-          it("400 Status: bad request, when incorrect sort_by", () => {
+          it("400 Status: bad request, when incorrect order", () => {
             return request
               .get("/api/articles/1/comments?order=down")
               .expect(400)
@@ -515,10 +536,28 @@ describe("/api", () => {
         it("400 Status: other information on body", () => {
           return request
             .patch("/api/comments/1")
-            .send({ inc_votes: 100, name: "Laura" })
+            .send({ inc_votes: 100, name: "laura" })
             .expect(400)
             .then(({ body }) => {
               expect(body.msg).to.equal("Unexpected properties on body");
+            });
+        });
+        it("400 Status: when comment_id not a number", () => {
+          return request
+            .patch("/api/comments/word")
+            .send({ inc_votes: 100 })
+            .expect(400)
+            .then(({ body }) => {
+              expect(body.msg).to.equal("Syntax error, input not valid");
+            });
+        });
+        it("404 Status: when comment_id not found", () => {
+          return request
+            .patch("/api/comments/1000")
+            .send({ inc_votes: 100 })
+            .expect(404)
+            .then(({ body }) => {
+              expect(body.msg).to.equal("Comment not found");
             });
         });
       });
@@ -540,6 +579,14 @@ describe("/api", () => {
             .expect(404)
             .then(({ body }) => {
               expect(body.msg).to.equal("Comment not found");
+            });
+        });
+        it("400 Status: when comment_id is not a number", () => {
+          return request
+            .delete("/api/comments/dave")
+            .expect(400)
+            .then(({ body }) => {
+              expect(body.msg).to.equal("Syntax error, input not valid");
             });
         });
       });

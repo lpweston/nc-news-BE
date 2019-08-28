@@ -33,7 +33,10 @@ exports.postComment = (req, res, next) => {
 };
 
 exports.getComments = (req, res, next) => {
-  selectComments(req.params, req.query)
+  selectArticles(req.params, req.query)
+    .then(() => {
+      return selectComments(req.params, req.query);
+    })
     .then(comments => {
       res.status(200).send({ comments });
     })
