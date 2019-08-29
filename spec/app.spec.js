@@ -18,7 +18,7 @@ describe("/api", () => {
         expect(body).to.eql({ msg: "Path not found" });
       });
   });
-  it("405 status: invalid methods", () => {
+  it("405 Status: invalid methods", () => {
     const invalidMethods = ["put", "patch", "delete"];
     const methodPromises = invalidMethods.map(method => {
       return request[method]("/api")
@@ -60,8 +60,8 @@ describe("/api", () => {
           });
       });
     });
-    it("405 status: invalid methods", () => {
-      const invalidMethods = ["patch", "put", "delete"];
+    it("405 Status: invalid methods", () => {
+      const invalidMethods = ["patch", "delete"];
       const methodPromises = invalidMethods.map(method => {
         return request[method]("/api/topics")
           .expect(405)
@@ -70,6 +70,54 @@ describe("/api", () => {
           });
       });
       return Promise.all(methodPromises);
+    });
+    describe("POST", () => {
+      it("200 Status: responds with new topic", () => {
+        return request
+          .post("/api/topics")
+          .send({
+            slug: "dogs",
+            description: "no cats"
+          })
+          .expect(200)
+          .then(({ body }) => {
+            expect(body.topic).to.eql({
+              slug: "dogs",
+              description: "no cats"
+            });
+          });
+      });
+      it("400 Status: missing information", () => {
+        return request
+          .post("/api/topics")
+          .send({ slug: "dog" })
+          .expect(400)
+          .then(({ body }) => {
+            expect(body.msg).to.equal("Missing information on body");
+          });
+      });
+      it("422 Status: slug not unique", () => {
+        return request
+          .post("/api/topics")
+          .send({ slug: "cats", description: "but this time its serious" })
+          .expect(422)
+          .then(({ body }) => {
+            expect(body.msg).to.equal("This topic already exists");
+          });
+      });
+      it("400 Status: other information on body", () => {
+        return request
+          .post("/api/topics")
+          .send({
+            slug: "dog",
+            description: "no cats",
+            id: 5
+          })
+          .expect(400)
+          .then(({ body }) => {
+            expect(body.msg).to.equal("Unexpected properties on body");
+          });
+      });
     });
   });
   describe("/users", () => {
@@ -409,7 +457,7 @@ describe("/api", () => {
             });
         });
       });
-      describe.only("DELETE", () => {
+      describe("DELETE", () => {
         it("204 Status: returns nothing", () => {
           return request.delete("/api/articles/1").expect(204);
         });

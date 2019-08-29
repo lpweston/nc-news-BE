@@ -104,6 +104,7 @@ Finally an invalid username is given and it checks for a 404 status.
 
 - GET /api - serves up a json representation of all the available endpoints of the api
 - GET /api/topics - serves an array of all topics
+- POST /api/topics - creates a new topic
 - GET /api/users/:username - serves a user
 - GET /api/articles - serves an array of all articles
 - POST /api/articles - creates a new article

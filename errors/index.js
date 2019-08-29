@@ -13,6 +13,9 @@ exports.handlePsqlErrors = (err, req, res, next) => {
     if (err.code === "23502") {
       res.status(400).send({ msg: "Missing information on body" });
     }
+    if (err.code === "23505") {
+      res.status(422).send({ msg: "This topic already exists" });
+    }
     if (err.code === "23503") {
       res.status(400).send({
         msg: "Foreign_key_violation: one of your inputs was not found"

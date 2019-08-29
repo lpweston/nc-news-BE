@@ -97,6 +97,20 @@
       }
     }
   },
+  "POST /api/topics": {
+    "description": "posts a new topic",
+    "request body": {
+      "slug": "dogs",
+      "description": "no cats"
+    },
+    "exampleResponse": {
+      "topic": {
+        "slug": "dogs",
+        "description": "no cats"
+      }
+    }
+  },
+
   "POST /api/articles": {
     "description": "posts a new article",
     "request body": {
