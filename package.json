@@ -4,6 +4,7 @@
   "description": "bc-nc-news",
   "main": "index.js",
   "scripts": {
+    "start": "node listen.js",
     "setup-dbs": "psql -f ./db/setup.sql",
     "seed": "knex seed:run",
     "seed-test": "NODE_ENV=test knex seed:run",
@@ -14,8 +15,7 @@
     "migrate-rollback": "knex migrate:rollback",
     "seed:prod": "NODE_ENV=production DB_URL=$(heroku config:get DATABASE_URL) knex seed:run",
     "migrate-latest:prod": "NODE_ENV=production DB_URL=$(heroku config:get DATABASE_URL) knex migrate:latest",
-    "migrate-rollback:prod": "NODE_ENV=production DB_URL=$(heroku config:get DATABASE_URL) knex migrate:rollback",
-    "start": "node listen.js"
+    "migrate-rollback:prod": "NODE_ENV=production DB_URL=$(heroku config:get DATABASE_URL) knex migrate:rollback"
   },
   "repository": {
     "type": "git",
