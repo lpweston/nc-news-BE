@@ -126,7 +126,7 @@ describe("/api", () => {
   });
   describe("/articles", () => {
     it("405 status: invalid methods", () => {
-      const invalidMethods = ["patch", "put", "delete"];
+      const invalidMethods = ["patch", "delete"];
       const methodPromises = invalidMethods.map(method => {
         return request[method]("/api/articles")
           .expect(405)
@@ -276,9 +276,93 @@ describe("/api", () => {
         });
       });
     });
+    describe("POST", () => {
+      it("201 Status: responds with posted article", () => {
+        return request
+          .post("/api/articles/")
+          .send({
+            username: "butter_bridge",
+            title: "Cat spooked by cucumber",
+            body:
+              "Have you seen those videos of cats getting freaked out by cucumbers?",
+            topic: "cats"
+          })
+          .expect(201)
+          .then(({ body }) => {
+            expect(body.article).to.have.keys(
+              "author",
+              "title",
+              "article_id",
+              "topic",
+              "votes",
+              "created_at",
+              "body"
+            );
+          });
+      });
+      it("400 Status: username not found", () => {
+        return request
+          .post("/api/articles/")
+          .send({
+            username: "me",
+            title: "Cat spooked by cucumber",
+            body:
+              "Have you seen those videos of cats getting freaked out by cucumbers?",
+            topic: "cats"
+          })
+          .expect(400)
+          .then(({ body }) => {
+            expect(body.msg).to.equal(
+              "Foreign_key_violation: one of your inputs was not found"
+            );
+          });
+      });
+      it("400 Status: topic not found", () => {
+        return request
+          .post("/api/articles/")
+          .send({
+            username: "butter_bridge",
+            title: "Cat spooked by cucumber",
+            body:
+              "Have you seen those videos of cats getting freaked out by cucumbers?",
+            topic: "dogs"
+          })
+          .expect(400)
+          .then(({ body }) => {
+            expect(body.msg).to.equal(
+              "Foreign_key_violation: one of your inputs was not found"
+            );
+          });
+      });
+      it("400 Status: missing information", () => {
+        return request
+          .post("/api/articles")
+          .send({ body: "here is an article" })
+          .expect(400)
+          .then(({ body }) => {
+            expect(body.msg).to.equal("Missing information on body");
+          });
+      });
+      it("400 Status: other information on body", () => {
+        return request
+          .post("/api/articles")
+          .send({
+            username: "butter_bridge",
+            title: "Cat spooked by cucumber",
+            body:
+              "Have you seen those videos of cats getting freaked out by cucumbers?",
+            topic: "cats",
+            id: 5
+          })
+          .expect(400)
+          .then(({ body }) => {
+            expect(body.msg).to.equal("Unexpected properties on body");
+          });
+      });
+    });
     describe("/:article_id", () => {
       it("405 status: invalid methods", () => {
-        const invalidMethods = ["put", "delete"];
+        const invalidMethods = ["put"];
         const methodPromises = invalidMethods.map(method => {
           return request[method]("/api/articles/1")
             .expect(405)
@@ -325,87 +409,24 @@ describe("/api", () => {
             });
         });
       });
-      describe("POST", () => {
-        it("201 Status: responds with posted article", () => {
-          return request
-            .post("/api/articles/")
-            .send({
-              username: "butter_bridge",
-              title: "Cat spooked by cucumber",
-              body:
-                "Have you seen those videos of cats getting freaked out by cucumbers?",
-              topic: "cats"
-            })
-            .expect(201)
-            .then(({ body }) => {
-              expect(body.article).to.have.keys(
-                "author",
-                "title",
-                "article_id",
-                "topic",
-                "votes",
-                "created_at",
-                "body"
-              );
-            });
+      describe.only("DELETE", () => {
+        it("204 Status: returns nothing", () => {
+          return request.delete("/api/articles/1").expect(204);
         });
-        it("400 Status: username not found", () => {
+        it("400 Status: responds with 'Syntax error' when comment_id is not a number", () => {
           return request
-            .post("/api/articles/")
-            .send({
-              username: "me",
-              title: "Cat spooked by cucumber",
-              body:
-                "Have you seen those videos of cats getting freaked out by cucumbers?",
-              topic: "cats"
-            })
+            .delete("/api/articles/article-name")
             .expect(400)
             .then(({ body }) => {
-              expect(body.msg).to.equal(
-                "Foreign_key_violation: one of your inputs was not found"
-              );
+              expect(body.msg).to.equal("Syntax error, input not valid");
             });
         });
-        it("400 Status: topic not found", () => {
+        it("404 Status: responds with 'Article not found' when article_id doesnt exist", () => {
           return request
-            .post("/api/articles/")
-            .send({
-              username: "butter_bridge",
-              title: "Cat spooked by cucumber",
-              body:
-                "Have you seen those videos of cats getting freaked out by cucumbers?",
-              topic: "dogs"
-            })
-            .expect(400)
+            .delete("/api/articles/1000")
+            .expect(404)
             .then(({ body }) => {
-              expect(body.msg).to.equal(
-                "Foreign_key_violation: one of your inputs was not found"
-              );
-            });
-        });
-        it("400 Status: missing information", () => {
-          return request
-            .post("/api/articles")
-            .send({ body: "here is an article" })
-            .expect(400)
-            .then(({ body }) => {
-              expect(body.msg).to.equal("Missing information on body");
-            });
-        });
-        it("400 Status: other information on body", () => {
-          return request
-            .post("/api/articles")
-            .send({
-              username: "butter_bridge",
-              title: "Cat spooked by cucumber",
-              body:
-                "Have you seen those videos of cats getting freaked out by cucumbers?",
-              topic: "cats",
-              id: 5
-            })
-            .expect(400)
-            .then(({ body }) => {
-              expect(body.msg).to.equal("Unexpected properties on body");
+              expect(body.msg).to.equal("Article not found");
             });
         });
       });

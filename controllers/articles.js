@@ -6,7 +6,8 @@ const {
   countArticles,
   checkArticle,
   countComments,
-  insertArticle
+  insertArticle,
+  removeArticle
 } = require("../models/articles");
 
 exports.getArticles = (req, res, next) => {
@@ -71,6 +72,14 @@ exports.postArticle = (req, res, next) => {
   insertArticle(req.body)
     .then(article => {
       res.status(201).send({ article });
+    })
+    .catch(next);
+};
+
+exports.deleteArticle = (req, res, next) => {
+  removeArticle(req.params)
+    .then(() => {
+      res.status(204).send();
     })
     .catch(next);
 };

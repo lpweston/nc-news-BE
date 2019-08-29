@@ -3,7 +3,8 @@ const {
   postArticle,
   patchVotes,
   postComment,
-  getComments
+  getComments,
+  deleteArticle
 } = require("../controllers/articles");
 const { send405 } = require("../errors/index.js");
 const articlesRouter = require("express").Router();
@@ -16,6 +17,7 @@ articlesRouter
 articlesRouter
   .route("/:article_id")
   .get(getArticles)
+  .delete(deleteArticle)
   .patch(patchVotes)
   .all(send405);
 articlesRouter

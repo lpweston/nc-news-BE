@@ -132,6 +132,9 @@
       }
     }
   },
+  "DELETE /api/articles/:article_id": {
+    "description": "deletes an article and its comments, returns nothing"
+  },
   "DELETE /api/comments/:comment_id": {
     "description": "deletes a comment, returns nothing"
   }

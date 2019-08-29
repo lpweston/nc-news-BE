@@ -176,3 +176,18 @@ exports.insertArticle = ({ username, title, body, topic, ...rest }) => {
       return article[0];
     });
 };
+
+exports.removeArticle = ({ article_id }) => {
+  return connection("articles")
+    .where({ article_id })
+    .del()
+    .then(count => {
+      if (count === 0) {
+        return Promise.reject({
+          status: 404,
+          msg: "Article not found"
+        });
+      }
+      return;
+    });
+};

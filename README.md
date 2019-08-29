@@ -106,8 +106,10 @@ Finally an invalid username is given and it checks for a 404 status.
 - GET /api/topics - serves an array of all topics
 - GET /api/users/:username - serves a user
 - GET /api/articles - serves an array of all articles
+- POST /api/articles - creates a new article
 - GET /api/articles/:article_id - serves an article
 - PATCH /api/articles/:article_id - increments the vote of an article
+- DELETE /api/artiles/:article_id - deletes an article and its comments
 - POST /api/articles/:article_id/comments - posts a new comment to an article
 - GET /api/articles/:article_id/comments - serves an array of comments for an article
 - PATCH /api/comments/:comment_id - increments the vote of a comment
