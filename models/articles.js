@@ -2,7 +2,7 @@ const connection = require("../db/connection");
 
 exports.selectArticles = (
   { article_id },
-  { sort_by = "created_at", order = "desc", author, topic }
+  { sort_by = "created_at", order = "desc", author, topic, limit = 10, p = 1 }
 ) => {
   if (order != "asc" && order != "desc") {
     return Promise.reject({
@@ -33,6 +33,8 @@ exports.selectArticles = (
     .leftJoin("comments", "articles.article_id", "comments.article_id")
     .groupBy("articles.article_id")
     .orderBy(sort_by, order)
+    .limit(limit)
+    .offset(p * limit - limit)
     .then(rows => {
       if (!rows[0]) {
         return Promise.reject({ status: 404, msg: "Article/s not found" });
@@ -104,7 +106,7 @@ exports.insertComment = ({ article_id }, { username, body, ...rest }) => {
 
 exports.selectComments = (
   { article_id },
-  { sort_by = "created_at", order = "desc" }
+  { sort_by = "created_at", order = "desc", limit = 10, p = 1 }
 ) => {
   if (order != "asc" && order != "desc") {
     return Promise.reject({
@@ -116,7 +118,40 @@ exports.selectComments = (
     .select("comment_id", "author", "votes", "created_at", "body")
     .where("article_id", article_id)
     .orderBy(sort_by, order)
+    .limit(limit)
+    .offset(p * limit - limit)
     .then(comments => {
       return comments;
+    });
+};
+
+exports.countArticles = ({ author, topic }) => {
+  return connection("articles")
+    .count("*")
+    .modify(query => {
+      if (author) query.where("articles.author", author);
+      if (topic) query.where("articles.topic", topic);
+    })
+    .then(rows => {
+      return rows[0].count;
+    });
+};
+
+exports.countComments = ({ article_id }) => {
+  return connection("comments")
+    .count("*")
+    .where({ article_id })
+    .then(rows => {
+      return rows[0].count;
+    });
+};
+
+exports.checkArticle = ({ article_id }) => {
+  return connection("articles")
+    .select("*")
+    .where({ article_id })
+    .then(rows => {
+      if (rows[0]) return true;
+      return false;
     });
 };

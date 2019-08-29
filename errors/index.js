@@ -6,6 +6,9 @@ exports.handleCustomErrors = (err, req, res, next) => {
 exports.handlePsqlErrors = (err, req, res, next) => {
   if (err.code) {
     //console.log(err.code);
+    if (err.code === "2201W") {
+      res.status(400).send({ msg: "Limit must not be negative" });
+    }
     if (err.code === "23502") {
       res.status(400).send({ msg: "Not null violation" });
     }

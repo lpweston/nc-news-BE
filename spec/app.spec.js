@@ -153,77 +153,127 @@ describe("/api", () => {
             );
           });
       });
-      it("200 Status: sorts by date dec, by default", () => {
-        return request
-          .get("/api/articles")
-          .expect(200)
-          .then(({ body }) => {
-            expect(
-              body.articles.map(({ created_at }) => Date.parse(created_at))
-            ).to.be.descending;
-          });
-      });
-      it("200 Status: with sort_by and order queries", () => {
-        return request
-          .get("/api/articles?sort_by=votes&order=asc")
-          .expect(200)
-          .then(({ body }) => {
-            expect(body.articles).to.be.sortedBy("votes");
-          });
-      });
-      it("200 Status: takes an author query which filters results by username", () => {
-        return request
-          .get("/api/articles?author=butter_bridge")
-          .expect(200)
-          .then(({ body }) => {
-            body.articles.forEach(article => {
-              expect(article.author).to.equal("butter_bridge");
+      describe("Sort_by and order tests", () => {
+        it("200 Status: sorts by date dec, by default", () => {
+          return request
+            .get("/api/articles")
+            .expect(200)
+            .then(({ body }) => {
+              expect(
+                body.articles.map(({ created_at }) => Date.parse(created_at))
+              ).to.be.descending;
             });
-          });
-      });
-      it("200 Status: takes a topic query which filters results by topic id", () => {
-        return request
-          .get("/api/articles?topic=mitch")
-          .expect(200)
-          .then(({ body }) => {
-            body.articles.forEach(article => {
-              expect(article.topic).to.equal("mitch");
+        });
+        it("200 Status: with sort_by and order queries", () => {
+          return request
+            .get("/api/articles?sort_by=votes&order=asc")
+            .expect(200)
+            .then(({ body }) => {
+              expect(body.articles).to.be.sortedBy("votes");
             });
-          });
+        });
+        it("400 Status: sort_by column doesnt exist", () => {
+          return request
+            .get("/api/articles?sort_by=name")
+            .expect(400)
+            .then(({ body }) => {
+              expect(body.msg).to.equal("Query invalid, column not found");
+            });
+        });
+        it("400 Status: order not correct", () => {
+          return request
+            .get("/api/articles?sort_by=votes&order=4")
+            .expect(400)
+            .then(({ body }) => {
+              expect(body.msg).to.equal(
+                "Query error, order input should be asc or desc"
+              );
+            });
+        });
       });
-      it("400 Status: sort_by column doesnt exist", () => {
-        return request
-          .get("/api/articles?sort_by=name")
-          .expect(400)
-          .then(({ body }) => {
-            expect(body.msg).to.equal("Query invalid, column not found");
-          });
+      describe("Author and topic query tests", () => {
+        it("200 Status: takes an author query which filters results by username", () => {
+          return request
+            .get("/api/articles?author=butter_bridge")
+            .expect(200)
+            .then(({ body }) => {
+              body.articles.forEach(article => {
+                expect(article.author).to.equal("butter_bridge");
+              });
+            });
+        });
+        it("200 Status: takes a topic query which filters results by topic id", () => {
+          return request
+            .get("/api/articles?topic=mitch")
+            .expect(200)
+            .then(({ body }) => {
+              body.articles.forEach(article => {
+                expect(article.topic).to.equal("mitch");
+              });
+            });
+        });
+        it("404 Status: author doesnt exist", () => {
+          return request
+            .get("/api/articles?author=me")
+            .expect(404)
+            .then(({ body }) => {
+              expect(body.msg).to.equal("Article/s not found");
+            });
+        });
+        it("404 Status: topic doesnt exist", () => {
+          return request
+            .get("/api/articles?topic=me")
+            .expect(404)
+            .then(({ body }) => {
+              expect(body.msg).to.equal("Article/s not found");
+            });
+        });
       });
-      it("400 Status: order not correct", () => {
-        return request
-          .get("/api/articles?sort_by=votes&order=4")
-          .expect(400)
-          .then(({ body }) => {
-            expect(body.msg).to.equal(
-              "Query error, order input should be asc or desc"
+      describe("Limit and page query tests", () => {
+        it("200 Status: by default it limits to 10 responces", () => {
+          return request
+            .get("/api/articles")
+            .expect(200)
+            .then(({ body }) => {
+              expect(body.articles.length).to.equal(10);
+            });
+        });
+        it("200 Status: takes a limit and responds with that number of articles", () => {
+          return request
+            .get("/api/articles?limit=5")
+            .expect(200)
+            .then(({ body }) => {
+              expect(body.articles.length).to.equal(5);
+            });
+        });
+        it("200 Status: takes a 'p' page number and responds with that page", () => {
+          const urls = ["/api/articles?limit=2", "/api/articles?limit=1&p=2"];
+          const promises = urls.map(url => {
+            return request.get(url);
+          });
+          return Promise.all(promises).then(([twoArticles, secondArticle]) => {
+            expect(twoArticles.body.articles[1]).to.eql(
+              secondArticle.body.article
             );
           });
-      });
-      it("404 Status: author doesnt exist", () => {
-        return request
-          .get("/api/articles?author=me")
-          .expect(404)
-          .then(({ body }) => {
-            expect(body.msg).to.equal("Article/s not found");
-          });
-      });
-      it("404 Status: topic doesnt exist", () => {
-        return request
-          .get("/api/articles?topic=me")
-          .expect(404)
-          .then(({ body }) => {
-            expect(body.msg).to.equal("Article/s not found");
-          });
+        });
+        it("400 Status: when limit is negative", () => {
+          return request
+            .get("/api/articles?limit=-1")
+            .expect(400)
+            .then(({ body }) => {
+              expect(body.msg).to.equal("Limit must not be negative");
+            });
+        });
+        it("200 Status: gives a total count", () => {
+          return request
+            .get("/api/articles?limit=5")
+            .expect(200)
+            .then(({ body }) => {
+              expect(parseInt(body.total_count)).to.be.a("number");
+              expect(parseInt(body.total_count)).to.equal(12);
+            });
+        });
       });
     });
     describe("/:article_id", () => {
@@ -497,6 +547,57 @@ describe("/api", () => {
                   "Query error, order input should be asc or desc"
                 );
               });
+          });
+          describe("Limit and page query tests", () => {
+            it("200 Status: by default it limits to 10 responces", () => {
+              return request
+                .get("/api/articles/1/comments")
+                .expect(200)
+                .then(({ body }) => {
+                  expect(body.comments.length).to.equal(10);
+                });
+            });
+            it("200 Status: takes a limit and responds with that number of articles", () => {
+              return request
+                .get("/api/articles/1/comments?limit=5")
+                .expect(200)
+                .then(({ body }) => {
+                  expect(body.comments.length).to.equal(5);
+                });
+            });
+            it("200 Status: takes a 'p' page number and responds with that page", () => {
+              const urls = [
+                "/api/articles/1/comments?limit=2",
+                "/api/articles/1/comments?limit=1&p=2"
+              ];
+              const promises = urls.map(url => {
+                return request.get(url);
+              });
+              return Promise.all(promises).then(
+                ([twoComments, secondComment]) => {
+                  expect(twoComments.body.comments[1]).to.eql(
+                    secondComment.body.comments[0]
+                  );
+                }
+              );
+            });
+            it("400 Status: when limit is negative", () => {
+              return request
+                .get("/api/articles/1/comments?limit=-1")
+                .expect(400)
+                .then(({ body }) => {
+                  expect(body.msg).to.equal("Limit must not be negative");
+                });
+            });
+            it("200 Status: gives a total count", () => {
+              return request
+                .get("/api/articles/1/comments?limit=5")
+                .expect(200)
+                .then(({ body }) => {
+                  expect(parseInt(body.total_count)).to.be.a("number");
+                  expect(parseInt(body.total_count)).to.equal(13);
+                });
+            });
           });
         });
       });

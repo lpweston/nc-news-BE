@@ -2,18 +2,33 @@ const {
   selectArticles,
   updateVotes,
   insertComment,
-  selectComments
+  selectComments,
+  countArticles,
+  checkArticle,
+  countComments
 } = require("../models/articles");
 
 exports.getArticles = (req, res, next) => {
-  selectArticles(req.params, req.query)
-    .then(articles => {
-      if (articles.length === 1) {
+  if (req.params.article_id) {
+    selectArticles(req.params, req.query)
+      .then(articles => {
         res.status(200).send({ article: articles[0] });
-      }
-      res.status(200).send({ articles });
-    })
-    .catch(next);
+      })
+      .catch(next);
+  } else {
+    const promises = [
+      selectArticles(req.params, req.query),
+      countArticles(req.params, req.query)
+    ];
+    Promise.all(promises)
+      .then(([articles, total_count]) => {
+        if (articles.length === 1) {
+          res.status(200).send({ article: articles[0], total_count });
+        }
+        res.status(200).send({ articles, total_count });
+      })
+      .catch(next);
+  }
 };
 
 exports.patchVotes = (req, res, next) => {
@@ -33,12 +48,20 @@ exports.postComment = (req, res, next) => {
 };
 
 exports.getComments = (req, res, next) => {
-  selectArticles(req.params, req.query)
-    .then(() => {
-      return selectComments(req.params, req.query);
-    })
-    .then(comments => {
-      res.status(200).send({ comments });
+  const promises = [
+    checkArticle(req.params),
+    selectComments(req.params, req.query),
+    countComments(req.params)
+  ];
+  Promise.all(promises)
+    .then(([bool, comments, total_count]) => {
+      if (!bool) {
+        return Promise.reject({
+          status: 404,
+          msg: "Article/s not found"
+        });
+      }
+      res.status(200).send({ comments, total_count });
     })
     .catch(next);
 };
