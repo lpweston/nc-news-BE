@@ -1,6 +1,7 @@
 process.env.NODE_ENV = "test";
 const app = require("../app");
 const chai = require("chai");
+const apiJSON = require("../endpoints.json");
 const expect = chai.expect;
 chai.use(require("chai-sorted"));
 const request = require("supertest")(app);
@@ -16,6 +17,27 @@ describe("/api", () => {
       .then(({ body }) => {
         expect(body).to.eql({ msg: "Path not found" });
       });
+  });
+  it("405 status: invalid methods", () => {
+    const invalidMethods = ["put", "patch", "delete"];
+    const methodPromises = invalidMethods.map(method => {
+      return request[method]("/api")
+        .expect(405)
+        .then(({ body: { msg } }) => {
+          expect(msg).to.equal("method not allowed");
+        });
+    });
+    return Promise.all(methodPromises);
+  });
+  describe("GET", () => {
+    it("200 Status: responds with JSON describing endpoints on the API", () => {
+      return request
+        .get("/api")
+        .expect(200)
+        .then(({ body }) => {
+          expect(body).to.eql(apiJSON);
+        });
+    });
   });
   describe("/topics", () => {
     describe("GET", () => {
@@ -430,12 +452,12 @@ describe("/api", () => {
                 expect(body.msg).to.equal("Article/s not found");
               });
           });
-          it("404 Status: responds with 'Comments not found' when article_id doesnt have any comments", () => {
+          it("200 Status: responds with empty array when article_id doesnt have any comments", () => {
             return request
               .get("/api/articles/2/comments")
-              .expect(404)
+              .expect(200)
               .then(({ body }) => {
-                expect(body.msg).to.equal("Comments not found");
+                expect(body.comments).to.eql([]);
               });
           });
           it("200 Status: default sort_by created_by desc", () => {

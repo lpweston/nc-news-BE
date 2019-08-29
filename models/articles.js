@@ -117,9 +117,6 @@ exports.selectComments = (
     .where("article_id", article_id)
     .orderBy(sort_by, order)
     .then(comments => {
-      if (!comments[0]) {
-        return Promise.reject({ status: 404, msg: "Comments not found" });
-      }
       return comments;
     });
 };
