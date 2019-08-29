@@ -155,3 +155,24 @@ exports.checkArticle = ({ article_id }) => {
       return false;
     });
 };
+
+exports.insertArticle = ({ username, title, body, topic, ...rest }) => {
+  if (Object.keys(rest).length) {
+    return Promise.reject({
+      status: 400,
+      msg: "Unexpected properties on body"
+    });
+  }
+  return connection("articles")
+    .insert({
+      author: username,
+      title,
+      body,
+      topic,
+      created_at: new Date()
+    })
+    .returning("*")
+    .then(article => {
+      return article[0];
+    });
+};

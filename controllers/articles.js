@@ -5,7 +5,8 @@ const {
   selectComments,
   countArticles,
   checkArticle,
-  countComments
+  countComments,
+  insertArticle
 } = require("../models/articles");
 
 exports.getArticles = (req, res, next) => {
@@ -62,6 +63,14 @@ exports.getComments = (req, res, next) => {
         });
       }
       res.status(200).send({ comments, total_count });
+    })
+    .catch(next);
+};
+
+exports.postArticle = (req, res, next) => {
+  insertArticle(req.body)
+    .then(article => {
+      res.status(201).send({ article });
     })
     .catch(next);
 };

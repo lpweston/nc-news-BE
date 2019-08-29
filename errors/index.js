@@ -5,15 +5,16 @@ exports.handleCustomErrors = (err, req, res, next) => {
 };
 exports.handlePsqlErrors = (err, req, res, next) => {
   if (err.code) {
-    //console.log(err.code);
+    // console.log(err.code);
+    // console.log(err.message);
     if (err.code === "2201W") {
       res.status(400).send({ msg: "Limit must not be negative" });
     }
     if (err.code === "23502") {
-      res.status(400).send({ msg: "Not null violation" });
+      res.status(400).send({ msg: "Missing information on body" });
     }
     if (err.code === "23503") {
-      res.status(422).send({
+      res.status(400).send({
         msg: "Foreign_key_violation: one of your inputs was not found"
       });
     }

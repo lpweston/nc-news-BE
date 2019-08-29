@@ -274,15 +274,6 @@ describe("/api", () => {
               expect(parseInt(body.total_count)).to.equal(12);
             });
         });
-        it("200 Status: gives a total count when filters are used", () => {
-          return request
-            .get("/api/articles?topic=cats")
-            .expect(200)
-            .then(({ body }) => {
-              expect(parseInt(body.total_count)).to.be.a("number");
-              expect(parseInt(body.total_count)).to.equal(1);
-            });
-        });
       });
     });
     describe("/:article_id", () => {
@@ -331,6 +322,90 @@ describe("/api", () => {
             .expect(404)
             .then(({ body }) => {
               expect(body.msg).to.equal("Article/s not found");
+            });
+        });
+      });
+      describe("POST", () => {
+        it("201 Status: responds with posted article", () => {
+          return request
+            .post("/api/articles/")
+            .send({
+              username: "butter_bridge",
+              title: "Cat spooked by cucumber",
+              body:
+                "Have you seen those videos of cats getting freaked out by cucumbers?",
+              topic: "cats"
+            })
+            .expect(201)
+            .then(({ body }) => {
+              expect(body.article).to.have.keys(
+                "author",
+                "title",
+                "article_id",
+                "topic",
+                "votes",
+                "created_at",
+                "body"
+              );
+            });
+        });
+        it("400 Status: username not found", () => {
+          return request
+            .post("/api/articles/")
+            .send({
+              username: "me",
+              title: "Cat spooked by cucumber",
+              body:
+                "Have you seen those videos of cats getting freaked out by cucumbers?",
+              topic: "cats"
+            })
+            .expect(400)
+            .then(({ body }) => {
+              expect(body.msg).to.equal(
+                "Foreign_key_violation: one of your inputs was not found"
+              );
+            });
+        });
+        it("400 Status: topic not found", () => {
+          return request
+            .post("/api/articles/")
+            .send({
+              username: "butter_bridge",
+              title: "Cat spooked by cucumber",
+              body:
+                "Have you seen those videos of cats getting freaked out by cucumbers?",
+              topic: "dogs"
+            })
+            .expect(400)
+            .then(({ body }) => {
+              expect(body.msg).to.equal(
+                "Foreign_key_violation: one of your inputs was not found"
+              );
+            });
+        });
+        it("400 Status: missing information", () => {
+          return request
+            .post("/api/articles")
+            .send({ body: "here is an article" })
+            .expect(400)
+            .then(({ body }) => {
+              expect(body.msg).to.equal("Missing information on body");
+            });
+        });
+        it("400 Status: other information on body", () => {
+          return request
+            .post("/api/articles")
+            .send({
+              username: "butter_bridge",
+              title: "Cat spooked by cucumber",
+              body:
+                "Have you seen those videos of cats getting freaked out by cucumbers?",
+              topic: "cats",
+              id: 5
+            })
+            .expect(400)
+            .then(({ body }) => {
+              expect(body.msg).to.equal("Unexpected properties on body");
             });
         });
       });
@@ -429,11 +504,11 @@ describe("/api", () => {
                 expect(body.msg).to.equal("Syntax error, input not valid");
               });
           });
-          it("422 Status: article_id not found", () => {
+          it("400 Status: article_id not found", () => {
             return request
               .post("/api/articles/30/comments")
               .send({ username: "lurker", body: "here is a comment" })
-              .expect(422)
+              .expect(400)
               .then(({ body }) => {
                 expect(body.msg).to.equal(
                   "Foreign_key_violation: one of your inputs was not found"
@@ -449,11 +524,11 @@ describe("/api", () => {
                 expect(body.msg).to.equal("Missing username");
               });
           });
-          it("422 Status: username not found", () => {
+          it("400 Status: username not found", () => {
             return request
               .post("/api/articles/1/comments")
               .send({ username: "some_user", body: "here is a comment" })
-              .expect(422)
+              .expect(400)
               .then(({ body }) => {
                 expect(body.msg).to.equal(
                   "Foreign_key_violation: one of your inputs was not found"
