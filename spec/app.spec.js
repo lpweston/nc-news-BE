@@ -274,6 +274,15 @@ describe("/api", () => {
               expect(parseInt(body.total_count)).to.equal(12);
             });
         });
+        it("200 Status: gives a total count when filters are used", () => {
+          return request
+            .get("/api/articles?topic=cats")
+            .expect(200)
+            .then(({ body }) => {
+              expect(parseInt(body.total_count)).to.be.a("number");
+              expect(parseInt(body.total_count)).to.equal(1);
+            });
+        });
       });
     });
     describe("/:article_id", () => {

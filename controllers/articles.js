@@ -18,7 +18,7 @@ exports.getArticles = (req, res, next) => {
   } else {
     const promises = [
       selectArticles(req.params, req.query),
-      countArticles(req.params, req.query)
+      countArticles(req.query)
     ];
     Promise.all(promises)
       .then(([articles, total_count]) => {
