@@ -120,7 +120,7 @@ describe("/api", () => {
       });
     });
   });
-  describe("/users", () => {
+  describe.only("/users", () => {
     it("405 status: invalid methods", () => {
       const invalidMethods = ["patch", "delete"];
       const methodPromises = invalidMethods.map(method => {
@@ -142,7 +142,8 @@ describe("/api", () => {
             expect(body.users[0]).to.have.keys(
               "username",
               "name",
-              "avatar_url"
+              "avatar_url",
+              "article_count"
             );
           });
       });
@@ -335,7 +336,8 @@ describe("/api", () => {
                   avatar_url:
                     "https://www.healthytherapies.com/wp-content/uploads/2016/06/Lime3.jpg",
                   name: "jonny",
-                  username: "butter_bridge"
+                  username: "butter_bridge",
+                  article_count: "3"
                 }
               };
               expect(body).to.eql(expectedResult);

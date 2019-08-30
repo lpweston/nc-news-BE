@@ -11,11 +11,14 @@ exports.selectUsers = (
     });
   }
   return connection
-    .select("*")
+    .select("users.*")
     .from("users")
     .modify(query => {
       if (username) query.where("username", username);
     })
+    .leftJoin("articles", "users.username", "articles.author")
+    .count("articles.article_id", { as: "article_count" })
+    .groupBy("users.username")
     .orderBy(sort_by, order)
     .limit(limit)
     .offset(p * limit - limit)
