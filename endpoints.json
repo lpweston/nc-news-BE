@@ -10,8 +10,9 @@
   },
   "GET /api/users": {
     "description": "serves an array of users",
-    "queries": ["sort_by", "order"],
+    "queries": ["sort_by", "order", "limit", "p"],
     "exampleResponse": {
+      "total_count": 1,
       "users": [
         {
           "username": "butter_bridge",
@@ -35,6 +36,7 @@
     "description": "serves an array of all articles",
     "queries": ["author", "topic", "sort_by", "order", "limit", "p"],
     "exampleResponse": {
+      "total_count": 1,
       "articles": [
         {
           "author": "butter_bridge",

@@ -43,6 +43,7 @@ exports.getArticles = (req, res, next) => {
             msg: "Author not found"
           });
         }
+        total_count = parseInt(total_count);
         res.status(200).send({ articles, total_count });
       })
       .catch(next);

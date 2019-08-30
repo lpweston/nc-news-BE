@@ -1,4 +1,4 @@
-const { selectUsers, postUser } = require("../models/users.js");
+const { selectUsers, postUser, countUsers } = require("../models/users.js");
 
 exports.getUser = (req, res, next) => {
   selectUsers(req.params, req.query)
@@ -9,9 +9,11 @@ exports.getUser = (req, res, next) => {
 };
 
 exports.getUsers = (req, res, next) => {
-  selectUsers(req.params, req.query)
-    .then(users => {
-      res.status(200).send({ users });
+  const promises = [countUsers(), selectUsers(req.params, req.query)];
+  Promise.all(promises)
+    .then(([total_count, users]) => {
+      total_count = parseInt(total_count);
+      res.status(200).send({ users, total_count });
     })
     .catch(next);
 };

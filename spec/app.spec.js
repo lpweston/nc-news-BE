@@ -40,6 +40,17 @@ describe("/api", () => {
     });
   });
   describe("/topics", () => {
+    it("405 Status: invalid methods", () => {
+      const invalidMethods = ["patch", "delete"];
+      const methodPromises = invalidMethods.map(method => {
+        return request[method]("/api/topics")
+          .expect(405)
+          .then(({ body: { msg } }) => {
+            expect(msg).to.equal("method not allowed");
+          });
+      });
+      return Promise.all(methodPromises);
+    });
     describe("GET", () => {
       it("200 Status: responds with an array of topic objects", () => {
         return request
@@ -59,17 +70,6 @@ describe("/api", () => {
             expect(body).to.eql(expectedResult);
           });
       });
-    });
-    it("405 Status: invalid methods", () => {
-      const invalidMethods = ["patch", "delete"];
-      const methodPromises = invalidMethods.map(method => {
-        return request[method]("/api/topics")
-          .expect(405)
-          .then(({ body: { msg } }) => {
-            expect(msg).to.equal("method not allowed");
-          });
-      });
-      return Promise.all(methodPromises);
     });
     describe("POST", () => {
       it("200 Status: responds with new topic", () => {
@@ -186,6 +186,48 @@ describe("/api", () => {
             expect(body.msg).to.equal(
               "Query error, order input should be asc or desc"
             );
+          });
+      });
+      it("200 Status: responce has a total_count", () => {
+        return request
+          .get("/api/users")
+          .expect(200)
+          .then(({ body }) => {
+            expect(body.total_count).to.be.a("number");
+            expect(body.total_count).to.equal(11);
+          });
+      });
+      it("200 Status: by default it limits to 10 responces", () => {
+        return request
+          .get("/api/users")
+          .expect(200)
+          .then(({ body }) => {
+            expect(body.users.length).to.equal(10);
+          });
+      });
+      it("200 Status: takes a limit and responds with that number of users", () => {
+        return request
+          .get("/api/users?limit=5")
+          .expect(200)
+          .then(({ body }) => {
+            expect(body.users.length).to.equal(5);
+          });
+      });
+      it("200 Status: takes a 'p' page number and responds with that page", () => {
+        const urls = ["/api/users?limit=2", "/api/users?limit=1&p=2"];
+        const promises = urls.map(url => {
+          return request.get(url);
+        });
+        return Promise.all(promises).then(([twoUsers, secondUser]) => {
+          expect(twoUsers.body.users[1]).to.eql(secondUser.body.users[0]);
+        });
+      });
+      it("400 Status: when limit is negative", () => {
+        return request
+          .get("/api/users?limit=-1")
+          .expect(400)
+          .then(({ body }) => {
+            expect(body.msg).to.equal("Limit must not be negative");
           });
       });
     });
@@ -474,8 +516,8 @@ describe("/api", () => {
             .get("/api/articles?limit=5")
             .expect(200)
             .then(({ body }) => {
-              expect(parseInt(body.total_count)).to.be.a("number");
-              expect(parseInt(body.total_count)).to.equal(12);
+              expect(body.total_count).to.be.a("number");
+              expect(body.total_count).to.equal(12);
             });
         });
       });

@@ -2,7 +2,7 @@ const connection = require("../db/connection");
 
 exports.selectUsers = (
   { username },
-  { sort_by = "username", order = "asc" }
+  { sort_by = "username", order = "asc", limit = 10, p = 1 }
 ) => {
   if (order != "asc" && order != "desc") {
     return Promise.reject({
@@ -17,6 +17,8 @@ exports.selectUsers = (
       if (username) query.where("username", username);
     })
     .orderBy(sort_by, order)
+    .limit(limit)
+    .offset(p * limit - limit)
     .then(rows => {
       if (!rows[0]) {
         return Promise.reject({ status: 404, msg: "User not found" });
@@ -46,5 +48,13 @@ exports.postUser = ({
     .returning("*")
     .then(article => {
       return article[0];
+    });
+};
+
+exports.countUsers = () => {
+  return connection("users")
+    .count("*")
+    .then(rows => {
+      return rows[0].count;
     });
 };
