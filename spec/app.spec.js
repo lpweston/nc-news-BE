@@ -102,7 +102,7 @@ describe("/api", () => {
           .send({ slug: "cats", description: "but this time its serious" })
           .expect(422)
           .then(({ body }) => {
-            expect(body.msg).to.equal("This topic already exists");
+            expect(body.msg).to.equal("This item already exists");
           });
       });
       it("400 Status: other information on body", () => {
@@ -122,7 +122,7 @@ describe("/api", () => {
   });
   describe("/users", () => {
     it("405 status: invalid methods", () => {
-      const invalidMethods = ["get", "patch", "put", "delete"];
+      const invalidMethods = ["patch", "delete"];
       const methodPromises = invalidMethods.map(method => {
         return request[method]("/api/users")
           .expect(405)
@@ -131,6 +131,144 @@ describe("/api", () => {
           });
       });
       return Promise.all(methodPromises);
+    });
+    describe("GET", () => {
+      it("200 Status: responds with list of users", () => {
+        return request
+          .get("/api/users")
+          .expect(200)
+          .then(({ body }) => {
+            expect(body.users).to.be.an("array");
+            expect(body.users[0]).to.have.keys(
+              "username",
+              "name",
+              "avatar_url"
+            );
+          });
+      });
+      it("200 Status: sorts username alphabetically by defualt", () => {
+        return request
+          .get("/api/users")
+          .expect(200)
+          .then(({ body }) => {
+            expect(body.users).to.be.sortedBy("username");
+          });
+      });
+      it("200 Status: sorts by name when passed query", () => {
+        return request
+          .get("/api/users?sort_by=name")
+          .expect(200)
+          .then(({ body }) => {
+            expect(body.users).to.be.sortedBy("name");
+          });
+      });
+      it("200 Status: sorts by desc when passed query", () => {
+        return request
+          .get("/api/users?order=desc")
+          .expect(200)
+          .then(({ body }) => {
+            expect(body.users).to.be.descendingBy("username");
+          });
+      });
+      it("400 Status: sort_by column doesnt exist", () => {
+        return request
+          .get("/api/users?sort_by=topic")
+          .expect(400)
+          .then(({ body }) => {
+            expect(body.msg).to.equal("Query invalid, column not found");
+          });
+      });
+      it("400 Status: order not correct", () => {
+        return request
+          .get("/api/users?order=4")
+          .expect(400)
+          .then(({ body }) => {
+            expect(body.msg).to.equal(
+              "Query error, order input should be asc or desc"
+            );
+          });
+      });
+    });
+    describe("POST", () => {
+      it("201 Status: creates new user", () => {
+        return request
+          .post("/api/users")
+          .send({
+            username: "thingy",
+            name: "laura",
+            avatar_url:
+              "https://avatars2.githubusercontent.com/u/24604688?s=460&v=4"
+          })
+          .expect(201)
+          .then(({ body }) => {
+            expect(body.user).to.eql({
+              username: "thingy",
+              name: "laura",
+              avatar_url:
+                "https://avatars2.githubusercontent.com/u/24604688?s=460&v=4"
+            });
+          });
+      });
+      it("201 Status: creates new user with a default avatar if not given", () => {
+        return request
+          .post("/api/users")
+          .send({
+            username: "thingy",
+            name: "laura"
+          })
+          .expect(201)
+          .then(({ body }) => {
+            expect(body.user).to.eql({
+              username: "thingy",
+              name: "laura",
+              avatar_url:
+                "https://www.golenbock.com/wp-content/uploads/2015/01/placeholder-user.png"
+            });
+          });
+      });
+      it("400 Status: missing information when username not given", () => {
+        return request
+          .post("/api/users")
+          .send({ name: "laura" })
+          .expect(400)
+          .then(({ body }) => {
+            expect(body.msg).to.equal("Missing information on body");
+          });
+      });
+      it("400 Status: missing information when name not given", () => {
+        return request
+          .post("/api/users")
+          .send({ username: "laura" })
+          .expect(400)
+          .then(({ body }) => {
+            expect(body.msg).to.equal("Missing information on body");
+          });
+      });
+      it("422 Status: username not unique", () => {
+        return request
+          .post("/api/users")
+          .send({
+            username: "butter_bridge",
+            name: "laura"
+          })
+          .expect(422)
+          .then(({ body }) => {
+            expect(body.msg).to.equal("This item already exists");
+          });
+      });
+      it("400 Status: other information on body", () => {
+        return request
+          .post("/api/users")
+          .send({
+            username: "butter_bridge",
+            name: "laura",
+            id: 5
+          })
+          .expect(400)
+          .then(({ body }) => {
+            expect(body.msg).to.equal("Unexpected properties on body");
+          });
+      });
     });
     describe("/:username", () => {
       it("405 status: invalid methods", () => {
@@ -260,12 +398,30 @@ describe("/api", () => {
               });
             });
         });
+        it("200 Status: returns empty array when topic has no articles", () => {
+          return request
+            .get("/api/articles?topic=paper")
+            .expect(200)
+            .then(({ body }) => {
+              expect(body.articles).to.be.an("array");
+              expect(body.articles.length).to.equal(0);
+            });
+        });
+        it("200 Status: returns empty array when author has no articles", () => {
+          return request
+            .get("/api/articles?author=lurker")
+            .expect(200)
+            .then(({ body }) => {
+              expect(body.articles).to.be.an("array");
+              expect(body.articles.length).to.equal(0);
+            });
+        });
         it("404 Status: author doesnt exist", () => {
           return request
             .get("/api/articles?author=me")
             .expect(404)
             .then(({ body }) => {
-              expect(body.msg).to.equal("Article/s not found");
+              expect(body.msg).to.equal("Author not found");
             });
         });
         it("404 Status: topic doesnt exist", () => {
@@ -273,7 +429,7 @@ describe("/api", () => {
             .get("/api/articles?topic=me")
             .expect(404)
             .then(({ body }) => {
-              expect(body.msg).to.equal("Article/s not found");
+              expect(body.msg).to.equal("Topic not found");
             });
         });
       });
@@ -301,7 +457,7 @@ describe("/api", () => {
           });
           return Promise.all(promises).then(([twoArticles, secondArticle]) => {
             expect(twoArticles.body.articles[1]).to.eql(
-              secondArticle.body.article
+              secondArticle.body.articles[0]
             );
           });
         });

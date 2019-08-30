@@ -36,9 +36,6 @@ exports.selectArticles = (
     .limit(limit)
     .offset(p * limit - limit)
     .then(rows => {
-      if (!rows[0]) {
-        return Promise.reject({ status: 404, msg: "Article/s not found" });
-      }
       return rows;
     });
 };
@@ -150,6 +147,28 @@ exports.checkArticle = ({ article_id }) => {
   return connection("articles")
     .select("*")
     .where({ article_id })
+    .then(rows => {
+      if (rows[0]) return true;
+      return false;
+    });
+};
+
+exports.checkTopic = ({ topic }) => {
+  if (!topic) return true;
+  return connection("topics")
+    .select("*")
+    .where({ slug: topic })
+    .then(rows => {
+      if (rows[0]) return true;
+      return false;
+    });
+};
+
+exports.checkAuthor = ({ author }) => {
+  if (!author) return true;
+  return connection("users")
+    .select("*")
+    .where({ username: author })
     .then(rows => {
       if (rows[0]) return true;
       return false;

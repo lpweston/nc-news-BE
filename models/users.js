@@ -1,14 +1,50 @@
 const connection = require("../db/connection");
 
-exports.selectUser = ({ username }) => {
+exports.selectUsers = (
+  { username },
+  { sort_by = "username", order = "asc" }
+) => {
+  if (order != "asc" && order != "desc") {
+    return Promise.reject({
+      status: 400,
+      msg: "Query error, order input should be asc or desc"
+    });
+  }
   return connection
     .select("*")
     .from("users")
-    .where("username", username)
+    .modify(query => {
+      if (username) query.where("username", username);
+    })
+    .orderBy(sort_by, order)
     .then(rows => {
       if (!rows[0]) {
         return Promise.reject({ status: 404, msg: "User not found" });
       }
-      return rows[0];
+      return rows;
+    });
+};
+
+exports.postUser = ({
+  username,
+  name,
+  avatar_url = "https://www.golenbock.com/wp-content/uploads/2015/01/placeholder-user.png",
+  ...rest
+}) => {
+  if (Object.keys(rest).length) {
+    return Promise.reject({
+      status: 400,
+      msg: "Unexpected properties on body"
+    });
+  }
+  return connection("users")
+    .insert({
+      username,
+      name,
+      avatar_url
+    })
+    .returning("*")
+    .then(article => {
+      return article[0];
     });
 };

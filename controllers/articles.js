@@ -7,25 +7,41 @@ const {
   checkArticle,
   countComments,
   insertArticle,
-  removeArticle
+  removeArticle,
+  checkTopic,
+  checkAuthor
 } = require("../models/articles");
 
 exports.getArticles = (req, res, next) => {
   if (req.params.article_id) {
     selectArticles(req.params, req.query)
       .then(articles => {
+        if (!articles[0]) {
+          return Promise.reject({ status: 404, msg: "Article/s not found" });
+        }
         res.status(200).send({ article: articles[0] });
       })
       .catch(next);
   } else {
     const promises = [
       selectArticles(req.params, req.query),
-      countArticles(req.query)
+      countArticles(req.query),
+      checkTopic(req.query),
+      checkAuthor(req.query)
     ];
     Promise.all(promises)
-      .then(([articles, total_count]) => {
-        if (articles.length === 1) {
-          res.status(200).send({ article: articles[0], total_count });
+      .then(([articles, total_count, topicBool, authorBool]) => {
+        if (!topicBool) {
+          return Promise.reject({
+            status: 404,
+            msg: "Topic not found"
+          });
+        }
+        if (!authorBool) {
+          return Promise.reject({
+            status: 404,
+            msg: "Author not found"
+          });
         }
         res.status(200).send({ articles, total_count });
       })

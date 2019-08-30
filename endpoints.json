@@ -8,6 +8,19 @@
       "topics": [{ "slug": "football", "description": "Footie!" }]
     }
   },
+  "GET /api/users": {
+    "description": "serves an array of users",
+    "queries": ["sort_by", "order"],
+    "exampleResponse": {
+      "users": [
+        {
+          "username": "butter_bridge",
+          "avatar_url": "https://www.healthytherapies.com/wp-content/uploads/2016/06/Lime3.jpg",
+          "name": "jonny"
+        }
+      ]
+    }
+  },
   "GET /api/users/:username": {
     "description": "serves a user",
     "exampleResponse": {
@@ -97,6 +110,23 @@
       }
     }
   },
+
+  "POST /api/users": {
+    "description": "creates a new user, if no avatar_url is given it will use a default",
+    "request body": {
+      "username": "thingy",
+      "name": "laura",
+      "avatar_url": "https://avatars2.githubusercontent.com/u/24604688?s=460&v=4"
+    },
+    "exampleResponse": {
+      "topic": {
+        "username": "thingy",
+        "name": "laura",
+        "avatar_url": "https://avatars2.githubusercontent.com/u/24604688?s=460&v=4"
+      }
+    }
+  },
+
   "POST /api/topics": {
     "description": "posts a new topic",
     "request body": {
