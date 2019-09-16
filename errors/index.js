@@ -5,7 +5,7 @@ exports.handleCustomErrors = (err, req, res, next) => {
 };
 exports.handlePsqlErrors = (err, req, res, next) => {
   if (err.code) {
-    //console.log(err.code);
+    // console.log(err.code);
     // console.log(err.message);
     const psqlErrors400 = {
       "2201W": "Limit must not be negative",

@@ -120,7 +120,7 @@ describe("/api", () => {
       });
     });
   });
-  describe.only("/users", () => {
+  describe("/users", () => {
     it("405 status: invalid methods", () => {
       const invalidMethods = ["patch", "delete"];
       const methodPromises = invalidMethods.map(method => {
