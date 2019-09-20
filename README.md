@@ -2,6 +2,8 @@
 
 Project to serve API for Northcoders News: a forum for northcoders to discuss various topics on. It has been [deployed here](https://news-northcoders.herokuapp.com/api/articles)
 
+The front-end has been [deployed here](https://news-nc.netlify.com), and the [git repository is here](https://github.com/lpweston/nc-news).
+
 The server is built using Express web framework. The database is PSQL and Knex is used to interact with it. The API is hosted on Heroku.
 
 It was built using TDD using mocha, chai (with chai-sorted) and supertest.
