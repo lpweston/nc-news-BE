@@ -747,7 +747,7 @@ describe("/api", () => {
           });
           return Promise.all(methodPromises);
         });
-        describe("POST", () => {
+        describe.only("POST", () => {
           it("201 Status: responds with posted comment", () => {
             return request
               .post("/api/articles/3/comments")
@@ -761,6 +761,21 @@ describe("/api", () => {
                   "votes",
                   "created_at",
                   "body"
+                );
+              });
+          });
+          it("201 Status:  will take a created_at if given", () => {
+            return request
+              .post("/api/articles/3/comments")
+              .send({
+                username: "lurker",
+                body: "here is a comment",
+                created_at: "2017-05-06T07:23:39.743Z"
+              })
+              .expect(201)
+              .then(({ body }) => {
+                expect(body.comment.created_at).to.eql(
+                  "2017-05-06T07:23:39.743Z"
                 );
               });
           });

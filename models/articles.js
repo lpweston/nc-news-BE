@@ -74,7 +74,10 @@ exports.updateVotes = ({ article_id }, { inc_votes, ...rest }) => {
     });
 };
 
-exports.insertComment = ({ article_id }, { username, body, ...rest }) => {
+exports.insertComment = (
+  { article_id },
+  { username, body, created_at, ...rest }
+) => {
   if (!username) {
     return Promise.reject({
       status: 400,
@@ -94,7 +97,13 @@ exports.insertComment = ({ article_id }, { username, body, ...rest }) => {
     });
   }
   return connection("comments")
-    .insert({ author: username, body, article_id })
+    .modify(query => {
+      if (created_at) {
+        query.insert({ author: username, body, article_id, created_at });
+      } else {
+        query.insert({ author: username, body, article_id });
+      }
+    })
     .returning("*")
     .then(comment => {
       return comment[0];
