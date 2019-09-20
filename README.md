@@ -122,5 +122,5 @@ Finally an invalid username is given and it checks for a 404 status.
 
 - [Express](http://expressjs.com/) - Web framework
 - [PostgreSQL](https://www.postgresql.org/) - Database
-- [Knek](https://www.postgresql.org/) - SQL query builder
+- [Knex](https://knexjs.org/) - SQL query builder
 - [Heroku](https://heroku.com) - Hosting
