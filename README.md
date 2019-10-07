@@ -31,7 +31,7 @@ Install the required dependencies
 npm install
 ```
 
-You will need to make a new file in the route directory: knexfile.js with the following content:
+You will need to make a new file in the root directory: knexfile.js with the following content:
 
 ```javascript
 const { DB_URL } = process.env;
