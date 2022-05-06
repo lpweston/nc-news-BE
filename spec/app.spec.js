@@ -747,7 +747,7 @@ describe("/api", () => {
           });
           return Promise.all(methodPromises);
         });
-        describe.only("POST", () => {
+        describe("POST", () => {
           it("201 Status: responds with posted comment", () => {
             return request
               .post("/api/articles/3/comments")
