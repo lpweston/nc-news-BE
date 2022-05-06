@@ -13,8 +13,8 @@ It was built using TDD using mocha, chai (with chai-sorted) and supertest.
 Clone the repo and change directory into it
 
 ```
-git clone https://github.com/lpweston/nc-news
-cd be-nc-news
+git clone https://github.com/lpweston/nc-news-BE
+cd nc-news-be
 ```
 
 ## Prerequistes
@@ -72,6 +72,7 @@ Set up the databases
 
 ```
 npm run setup-dbs
+npm run seed
 ```
 
 ## Running the tests
@@ -79,6 +80,7 @@ npm run setup-dbs
 You can run the test suite for the API
 
 ```
+npm run seed-test
 npm test
 ```
 
